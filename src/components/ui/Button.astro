@@ -1,0 +1,23 @@
+---
+/**
+ * Shared link-button. Two variants only — keep it that way; new variants
+ * should earn their place rather than accumulate.
+ */
+interface Props {
+  href: string;
+  variant?: "solid" | "outline";
+  class?: string;
+}
+
+const { href, variant = "outline", class: className = "" } = Astro.props;
+
+const base = "inline-flex items-center gap-2 border px-4 py-2 text-sm transition-colors";
+const variants = {
+  solid: "border-ink bg-ink text-paper hover:border-red hover:bg-red",
+  outline: "border-ink hover:border-red hover:text-red",
+};
+---
+
+<a href={href} class={`${base} ${variants[variant]} ${className}`}>
+  <slot />
+</a>

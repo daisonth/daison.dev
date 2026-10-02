@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens.
+ * Exactly three colors on purpose: paper, ink, red.
+ * See docs/DESIGN.md for the full rationale and usage rules.
+ */
+@theme {
+  --color-paper: #fafaf8;
+  --color-ink: #111110;
+  --color-red: #c81a1a;
+
+  --font-mono:
+    "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+
+  /* Ruled-line rhythm: body copy line-height is tuned to sit on these lines. */
+  --rule-gap: 2rem;
+}
+
+@layer base {
+  /* No rounded corners anywhere, ever. This is the one rule we never break. */
+  *,
+  *::before,
+  *::after {
+    border-radius: 0;
+  }
+
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    line-height: var(--rule-gap);
+    min-height: 100dvh;
+    position: relative;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  ::selection {
+    background-color: var(--color-red);
+    color: var(--color-paper);
+  }
+
+  /* Respect it. Motion is a decoration, not a requirement. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * .paper: grain + ruled horizontal lines, layered as backgrounds so it costs
+   * nothing to paint and never touches the DOM. Applied once, to <body>.
+   */
+  .paper {
+    background-image:
+      /* fine paper grain */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      /* ruled lines */
+      repeating-linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-ink) 8%, transparent) 0,
+        color-mix(in srgb, var(--color-ink) 8%, transparent) 1px,
+        transparent 1px,
+        transparent var(--rule-gap)
+      );
+    background-size:
+      200px 200px,
+      100% var(--rule-gap);
+    background-attachment: fixed, local;
+  }
+
+  /* Vertical margin rule, legal-pad style. Hidden on narrow screens. */
+  .margin-line {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 3.5rem;
+    width: 1px;
+    background-color: color-mix(in srgb, var(--color-red) 55%, transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @media (max-width: 40rem) {
+    .margin-line {
+      display: none;
+    }
+  }
+
+  /*
+   * Hand-rolled prose styling for rendered markdown bodies (notes, projects).
+   * Deliberately not the Tailwind Typography plugin — it ships its own
+   * rounded corners and color choices that would fight the 3-color system.
+   */
+  .prose {
+    max-width: 65ch;
+    color: color-mix(in srgb, var(--color-ink) 85%, transparent);
+  }
+
+  .prose > * + * {
+    margin-top: 1.25rem;
+  }
+
+  .prose h2 {
+    margin-top: 2.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-ink);
+  }
+
+  .prose h3 {
+    margin-top: 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-ink);
+  }
+
+  .prose a {
+    color: var(--color-red);
+    text-decoration-line: underline;
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-left: 1.5rem;
+  }
+
+  .prose ul {
+    list-style-type: disc;
+  }
+
+  .prose ol {
+    list-style-type: decimal;
+  }
+
+  .prose blockquote {
+    border-left: 2px solid var(--color-red);
+    padding-left: 1rem;
+    color: color-mix(in srgb, var(--color-ink) 70%, transparent);
+  }
+
+  .prose code {
+    background-color: color-mix(in srgb, var(--color-ink) 6%, transparent);
+    padding: 0.125rem 0.375rem;
+    font-size: 0.875em;
+  }
+
+  .prose pre {
+    overflow-x: auto;
+    border: 1px solid color-mix(in srgb, var(--color-ink) 15%, transparent);
+    padding: 1rem;
+  }
+
+  .prose pre code {
+    background-color: transparent;
+    padding: 0;
+  }
+}

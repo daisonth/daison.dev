@@ -1,0 +1,35 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Tag from "../../components/ui/Tag.astro";
+import { formatDate } from "../../lib/utils";
+
+const projects = (await getCollection("projects")).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<BaseLayout title="Projects" description="Things I'm building or have built.">
+  <section class="py-16">
+    <h1 class="text-2xl font-bold">Projects</h1>
+    <ul class="mt-10 flex flex-col divide-y divide-ink/15 border-t border-b border-ink/15">
+      {
+        projects.map((project) => (
+          <li class="py-6">
+            <a href={`/projects/${project.id}`} class="group block">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 class="text-lg font-semibold group-hover:text-red">{project.data.title}</h2>
+                <span class="font-mono text-xs text-ink/50">{formatDate(project.data.date)}</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/70">{project.data.description}</p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                <Tag>{project.data.status}</Tag>
+                {project.data.tags.map((tag) => <Tag>{tag}</Tag>)}
+              </div>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>
