@@ -10,7 +10,7 @@ const notes = (await getCollection("notes", ({ data }) => !data.draft)).sort(
 ---
 
 <BaseLayout title="Notes" description="Writing on whatever I'm into at the time.">
-  <section class="py-16">
+  <section class="py-12 sm:py-16">
     <h1 class="text-2xl font-bold">Notes</h1>
     <ul class="mt-10 flex flex-col divide-y divide-ink/15 border-t border-b border-ink/15">
       {

@@ -17,7 +17,7 @@ const { Content } = await render(note);
 ---
 
 <BaseLayout title={note.data.title} description={note.data.description}>
-  <article class="py-16">
+  <article class="py-12 sm:py-16">
     <a href="/notes" class="text-sm text-ink/50 hover:text-red">&larr; notes</a>
 
     <h1 class="mt-4 text-2xl font-bold">{note.data.title}</h1>

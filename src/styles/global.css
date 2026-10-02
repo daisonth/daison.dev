@@ -30,6 +30,10 @@
     color: var(--color-ink);
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    /* Decorative fixed-position elements (margin line) should never be able
+       to force a horizontal scrollbar — this is a safety net, not a fix for
+       a known bug. */
+    overflow-x: hidden;
   }
 
   body {
@@ -84,7 +88,9 @@
     background-size:
       200px 200px,
       100% var(--rule-gap);
-    background-attachment: fixed, local;
+    /* No background-attachment: fixed — it's a well-known scroll-jank
+       source on mobile Safari, and the texture should feel printed on the
+       page anyway, not pinned to the viewport. */
   }
 
   /* Vertical margin rule, legal-pad style. Hidden on narrow screens. */
