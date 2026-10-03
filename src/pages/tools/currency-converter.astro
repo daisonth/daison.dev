@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CurrencyConverter from "../../components/islands/CurrencyConverter.svelte";
+---
+
+<BaseLayout
+  title="Currency Converter"
+  description="Convert between currencies with live rates, or see one amount converted into every currency at once."
+>
+  <section class="py-12 sm:py-16">
+    <a href="/tools" class="text-sm text-ink/50 hover:text-red">&larr; tools</a>
+    <h1 class="mt-4 text-2xl font-bold">Currency Converter</h1>
+    <p class="mt-2 max-w-md text-sm text-ink/70">
+      Rates from the Frankfurter API, updated daily. Only your source currency is sent to look it
+      up — the amount and target currency never leave your browser.
+    </p>
+
+    <div class="mt-10">
+      <CurrencyConverter client:load />
+    </div>
+  </section>
+</BaseLayout>

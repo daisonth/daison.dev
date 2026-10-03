@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ShoppingList from "../../components/islands/ShoppingList.svelte";
+---
+
+<BaseLayout
+  title="Shopping List"
+  description="Multiple shopping lists, saved to this browser. Check items off, cut them out, no account needed."
+>
+  <section class="py-12 sm:py-16">
+    <a href="/tools" class="text-sm text-ink/50 hover:text-red">&larr; tools</a>
+    <h1 class="mt-4 text-2xl font-bold">Shopping List</h1>
+    <p class="mt-2 max-w-md text-sm text-ink/70">
+      Keep as many lists as you want. Everything's saved only in this browser — nothing leaves
+      your device.
+    </p>
+
+    <div class="mt-10">
+      <ShoppingList client:load />
+    </div>
+  </section>
+</BaseLayout>

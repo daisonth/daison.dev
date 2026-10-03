@@ -1,0 +1,28 @@
+{
+  "name": "daison.dev",
+  "short_name": "daison.dev",
+  "description": "Daison's personal site — projects, notes, and a small library of free, ad-free tools.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fafaf8",
+  "theme_color": "#111110",
+  "lang": "en",
+  "icons": [
+    { "src": "/pwa-64x64.png", "sizes": "64x64", "type": "image/png" },
+    { "src": "/pwa-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png" },
+    {
+      "src": "/maskable-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Calculator", "url": "/tools/calculator" },
+    { "name": "Shopping List", "url": "/tools/shopping-list" },
+    { "name": "JSON Formatter", "url": "/tools/json-formatter" },
+    { "name": "XML Formatter", "url": "/tools/xml-formatter" }
+  ]
+}

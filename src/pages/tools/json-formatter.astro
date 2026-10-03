@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import JsonFormatter from "../../components/islands/JsonFormatter.svelte";
+---
+
+<BaseLayout
+  title="JSON Formatter"
+  description="Format, minify, and validate JSON — entirely in your browser, nothing sent anywhere."
+>
+  <section class="py-12 sm:py-16">
+    <a href="/tools" class="text-sm text-ink/50 hover:text-red">&larr; tools</a>
+    <h1 class="mt-4 text-2xl font-bold">JSON Formatter</h1>
+    <p class="mt-2 max-w-md text-sm text-ink/70">
+      Paste JSON, format or minify it, copy it back out. Nothing leaves your browser.
+    </p>
+
+    <div class="mt-10">
+      <JsonFormatter client:load />
+    </div>
+  </section>
+</BaseLayout>

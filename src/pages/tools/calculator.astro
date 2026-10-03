@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Calculator from "../../components/islands/Calculator.svelte";
+---
+
+<BaseLayout
+  title="Calculator"
+  description="A fast, ad-free calculator with keyboard support and local history."
+>
+  <section class="py-12 sm:py-16">
+    <a href="/tools" class="text-sm text-ink/50 hover:text-red">&larr; tools</a>
+    <h1 class="mt-4 text-2xl font-bold">Calculator</h1>
+    <p class="mt-2 max-w-md text-sm text-ink/70">
+      Keyboard works too. History is saved only in this browser — nothing leaves your device.
+    </p>
+
+    <div class="mt-10">
+      <Calculator client:load />
+    </div>
+  </section>
+</BaseLayout>

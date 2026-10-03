@@ -95,8 +95,87 @@ pending further direction — see root `CLAUDE.md`):
   should earn its place.
 - `src/components/layout/` — structural, used once per page (`Nav.astro`,
   `Footer.astro`).
+- `src/components/islands/` — Svelte components that own real client-side
+  state (`Calculator.svelte`). Only things that genuinely need
+  interactivity live here.
 - Build in Astro by default (zero JS). Reach for a Svelte island only when a
   component needs client-side interactivity or owns animation state.
+
+### Tools: the app-picker grid
+
+`/tools` is a grid of square icon tiles (`ToolTile.astro`) — tap one to open
+it, like picking an app off a home screen, deliberately reinterpreted without
+rounded corners or gradients to stay inside the 3-color system. Rules for
+adding a tool here:
+
+- **Icon**: a hand-drawn inline SVG (no icon library/font — keeps the
+  dependency list at zero and the look consistent), `viewBox="0 0 24 24"`,
+  `stroke="currentColor"` `stroke-width="1.5"`, `fill="none"` except small
+  filled dots/accents. It should read clearly at ~28px.
+- **Not yet built**: pass `href={null}` and `status="planned"` — renders
+  dimmed and inert rather than a dead link. Don't invent a route that
+  doesn't work yet.
+- **Where the tool lives**: see the "Tool scope split" note at the top of
+  the root `CLAUDE.md` before adding a new one.
+
+## Fullscreen
+
+Not every tool needs this — a calculator or a short shopping list is
+already a good size; a JSON/XML formatter genuinely benefits from more
+room when pasting a large payload. So fullscreen is built **into the tool
+component that needs it** (`FormatterTool.svelte`), not as a site-wide
+pattern every tool page has to carry or opt out of.
+
+- It's an in-page overlay (`position: fixed; inset: 0`), not the browser's
+  native Fullscreen API — no permission prompt, no OS chrome side effects,
+  works identically everywhere. The toggle button lives inside the tool's
+  own button row (next to format/minify/copy/clear), never floating over
+  the page — the user is maximizing *this tool*, not the browser tab.
+- A small header inside the overlay names the tool ("JSON formatter" /
+  "XML formatter") — with the site nav hidden behind the overlay, there
+  has to be *something* identifying what you're looking at.
+- The overlay carries the `.paper` texture class itself (plus an opaque
+  `bg-paper` to actually hide what's behind it) rather than appearing as a
+  flat white sheet — it should still look like this site, not a generic
+  modal.
+- **The overlay is portaled to a direct child of `<body>`** via a tiny
+  `use:portal` action (`document.body.appendChild(node)` on mount, `.remove()`
+  on destroy) instead of rendering in place. This isn't a style choice —
+  without it, the footer visibly bled through the middle of the fullscreen
+  overlay. `BaseLayout`'s `<main>` has `relative z-10`, which makes it its
+  own stacking context; a z-index set on something *nested inside* main is
+  only ever compared against other things inside that same context, so it
+  can never outrank a sibling stacking context like `<footer>` (also
+  `relative z-10`), no matter how high the number is — footer comes later
+  in DOM order so it wins the tie and paints on top of all of main,
+  overlay included. Portaling to `<body>` puts the overlay in the same
+  flat comparison as header/main/footer, where z-index finally does what
+  it looks like it should. If you add fullscreen to another tool, reuse
+  this pattern — don't just bump the z-index higher, it won't help.
+- Layout is a flex column filling the viewport: a flexible editor row on
+  top, the status line + button row (which includes the toggle itself)
+  pinned at the bottom simply by being the last flex child — nothing needs
+  `position: sticky` or manual height math for "always visible," it falls
+  out of the flex layout.
+- The editor row adds a line-number gutter (a plain synced-scroll `<div>`,
+  not a code-editor dependency) and the textarea switches to
+  `white-space: pre` with horizontal scroll instead of soft-wrapping. This
+  is the part that actually requires unwrapped lines: a wrapped long line
+  would make one logical line span multiple visual rows, breaking the
+  one-number-per-row gutter alignment.
+- Esc exits fullscreen (matches user expectation even without the native
+  Fullscreen API), and body scroll is locked while it's open since the
+  overlay already fills the viewport on its own.
+- **Don't build this as reusable global CSS keyed to a shared class.** An
+  earlier version of this tried exactly that (a `.focus-mode` class on
+  `<html>` with override rules in `global.css`) and silently lost a
+  cascade-layer fight: Tailwind v4 emits utilities inside `@layer
+  utilities`, declared *after* `@layer components` — and layer order beats
+  selector specificity entirely, so a `.max-w-2xl` utility always won
+  regardless of how specific the override selector was. Doing the layout
+  switch via Svelte's own reactive classes (as `FormatterTool.svelte` does)
+  sidesteps the cascade entirely: there's no override, just a different set
+  of classes applied to begin with.
 
 ## Accessibility
 

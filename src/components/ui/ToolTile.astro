@@ -1,0 +1,35 @@
+---
+/**
+ * One app-picker icon tile. Pass the icon as the default slot (an inline
+ * SVG, so it inherits color via currentColor and costs no network request).
+ */
+interface Props {
+  name: string;
+  href: string | null;
+  status?: string;
+}
+
+const { name, href, status } = Astro.props;
+
+const box =
+  "flex aspect-square w-16 items-center justify-center border border-ink/30 sm:w-20 [&_svg]:h-7 [&_svg]:w-7 sm:[&_svg]:h-8 sm:[&_svg]:w-8";
+---
+
+{
+  href ? (
+    <a href={href} class="group flex flex-col items-center gap-2">
+      <span class={`${box} text-ink transition-colors group-hover:border-red group-hover:text-red`}>
+        <slot />
+      </span>
+      <span class="text-center text-xs text-ink/70 group-hover:text-red">{name}</span>
+    </a>
+  ) : (
+    <div class="flex flex-col items-center gap-2 opacity-40">
+      <span class={`${box} text-ink`}>
+        <slot />
+      </span>
+      <span class="text-center text-xs text-ink/70">{name}</span>
+      {status && <span class="text-[10px] tracking-wide text-ink/50 uppercase">{status}</span>}
+    </div>
+  )
+}

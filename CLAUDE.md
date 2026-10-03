@@ -4,10 +4,20 @@ Personal site for Daison (hello@daison.dev). Minimal, raw, DIY, no-nonsense —
 not a portfolio aimed at getting hired. This repo is **only the shell
 site**: home, projects, notes, tools (index/landing page), contact.
 
-Individual tools (PDF editor, URL shortener, mini-games, etc.) are **separate
-codebases**, deliberately polyglot (Go, Rust, WebAssembly, whatever fits the
-tool), each its own repo/deploy. This repo only links out to them from
-`/tools` once they exist. Don't pull tool implementations into this repo.
+**Tool scope split:** simple, pure-frontend tools (calculator, unit
+converter — no backend, no heavy/non-JS runtime) live directly in this repo
+as pages under `/tools/*` with a Svelte island for the interactive part.
+Complex or polyglot tools (PDF editor, anything needing Go, Rust,
+WebAssembly, or a backend) are **separate codebases**, each its own
+repo/deploy — this repo only links out to those from `/tools` once they
+exist. When in doubt which bucket a new tool falls into, ask.
+
+A tool calling a public third-party API from the client (e.g. the currency
+converter → Frankfurter) still counts as "simple, pure-frontend" — it's
+*our* backend that's out of scope here, not all network access. Keep the
+same privacy bar as the fully-offline tools though: send only what the API
+genuinely needs to answer the request (e.g. a currency code), never
+anything else about the user, and say so on the page.
 
 ## Stack
 
@@ -35,6 +45,7 @@ src/
   components/
     layout/     structural, used once per page (Nav, Footer)
     ui/         generic reusable pieces (Button, Tag)
+    islands/    Svelte components with client-side state (e.g. Calculator)
   content/
     notes/      markdown — blog/notes entries
     projects/   markdown — project entries
@@ -82,6 +93,34 @@ docs/
   normally add one.
 - Write commit messages that explain *why*, not a restatement of the diff.
 - Don't commit unless explicitly asked to.
+
+## Tool pages: fullscreen + PWA
+
+**Fullscreen is a per-tool feature, not a page-level pattern.** Only tools
+where more space genuinely helps (currently: the JSON/XML formatters, via
+the shared `FormatterTool.svelte`) have it, and it lives entirely inside
+that component — an in-page overlay (`position: fixed`, covers the site
+chrome visually) toggled by a "fullscreen" button that's part of the tool's
+own button row, not the browser's native Fullscreen API and not a
+site-wide toggle. Calculator and Shopping List deliberately don't have
+this; don't add it to a new tool unless that tool specifically needs more
+room to be usable (long-form text input, mainly). See the "Fullscreen"
+section in `docs/DESIGN.md` for the exact layout approach, including the
+line-number gutter and why the textarea disables wrapping while in it.
+
+**PWA**: `public/manifest.webmanifest` and the icon PNGs in `public/` are
+hand-generated static files (source SVG at
+`src/assets/pwa-icon-source.svg`, regenerate via
+`npx pwa-assets-generator --preset minimal src/assets/pwa-icon-source.svg`
+if the icon design ever changes, then move the output into `public/`). This
+makes the site installable (manifest + icons + `shortcuts` to each tool),
+but there's deliberately **no service worker / offline support** —
+`vite-plugin-pwa`'s service-worker generation hard-skips whenever the Vite
+build pass has `build.ssr` set, which Astro's static build does; that's a
+real architectural mismatch, not a config tweak, so the dependency was
+removed rather than left half-working. If real offline support is wanted
+later, it needs a hand-written `public/sw.js` with its own cache-versioning
+scheme — don't reintroduce `vite-plugin-pwa` expecting it to work.
 
 ## Content
 

@@ -1,0 +1,22 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import NoisePlayer from "../../components/islands/NoisePlayer.svelte";
+---
+
+<BaseLayout
+  title="Noise Player"
+  description="White, pink, brown, and grey noise, generated live in your browser. No audio files, no ads."
+>
+  <section class="py-12 sm:py-16">
+    <a href="/tools" class="text-sm text-ink/50 hover:text-red">&larr; tools</a>
+    <h1 class="mt-4 text-2xl font-bold">Noise Player</h1>
+    <p class="mt-2 max-w-md text-sm text-ink/70">
+      Generated live — nothing downloaded, nothing sent anywhere. Pick a noise, hit play.
+      Spacebar toggles play/pause.
+    </p>
+
+    <div class="mt-10">
+      <NoisePlayer client:load />
+    </div>
+  </section>
+</BaseLayout>

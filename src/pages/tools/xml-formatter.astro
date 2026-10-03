@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import XmlFormatter from "../../components/islands/XmlFormatter.svelte";
+---
+
+<BaseLayout
+  title="XML Formatter"
+  description="Format, minify, and validate XML — entirely in your browser, nothing sent anywhere."
+>
+  <section class="py-12 sm:py-16">
+    <a href="/tools" class="text-sm text-ink/50 hover:text-red">&larr; tools</a>
+    <h1 class="mt-4 text-2xl font-bold">XML Formatter</h1>
+    <p class="mt-2 max-w-md text-sm text-ink/70">
+      Paste XML, format or minify it, copy it back out. Nothing leaves your browser.
+    </p>
+
+    <div class="mt-10">
+      <XmlFormatter client:load />
+    </div>
+  </section>
+</BaseLayout>
