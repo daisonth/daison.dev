@@ -135,6 +135,13 @@ scheme — don't reintroduce `vite-plugin-pwa` expecting it to work.
 - New project: add a `.md` file to `src/content/projects/` with `title`,
   `description`, `date`, `status` (`active` / `shipped` / `archived`), and
   optional `url` / `repo` / `tags`.
-- The placeholder entries currently in both folders (`hello.md`,
-  `this-site.md`) exist only so the listing pages have something to render —
-  replace or delete them once real content exists.
+- **Projects and notes are deliberately disabled for now** (as of
+  2026-10-03): both `/projects` and `/notes` nav links are removed from
+  `Nav.astro`, and both `src/content/{notes,projects}/` folders are empty —
+  the earlier placeholder entries (`hello.md`, `this-site.md`) were deleted
+  rather than left in, since their only purpose was making an empty listing
+  page look non-empty. The `src/pages/{notes,projects}/index.astro` and
+  `[slug].astro` routes themselves are untouched and still build fine
+  against an empty collection — only the nav entry point was removed. Add
+  the nav links back to `Nav.astro` once each section has at least one real
+  entry.
