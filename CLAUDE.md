@@ -127,6 +127,15 @@ removed rather than left half-working. If real offline support is wanted
 later, it needs a hand-written `public/sw.js` with its own cache-versioning
 scheme — don't reintroduce `vite-plugin-pwa` expecting it to work.
 
+## Deploy
+
+Hosted on Cloudflare (Workers static assets, not classic Pages — the
+dashboard's Git-connected build uses `npm run build` then `npx wrangler
+deploy`). `wrangler.jsonc` at the repo root points `assets.directory` at
+`./dist`; no Worker script needed since this is a pure static-assets
+deploy. `wrangler` itself is a devDependency so `npx wrangler deploy
+--dry-run` can be checked locally before pushing.
+
 ## Content
 
 - New note: add a `.md` file to `src/content/notes/` with `title`,

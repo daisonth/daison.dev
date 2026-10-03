@@ -26,6 +26,7 @@
     "esbuild": true
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.10"
+    "@astrojs/check": "^0.9.10",
+    "wrangler": "^4.147.0"
   }
 }

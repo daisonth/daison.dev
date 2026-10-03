@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "daison-dev",
+  "compatibility_date": "2026-10-03",
+  // Astro's static build output — no Worker script needed, this makes it a
+  // pure static-assets deploy (what "npx wrangler deploy" in the Cloudflare
+  // dashboard's build config actually uploads).
+  "assets": {
+    "directory": "./dist"
+  }
+}
