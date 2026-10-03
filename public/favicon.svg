@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
     <g class="ink">
-        <rect x="16" y="30" width="96" height="10"/>
-        <rect x="16" y="59" width="96" height="10"/>
-        <rect x="16" y="88" width="96" height="10"/>
+        <rect x="8" y="36" width="112" height="16"/>
+        <rect x="8" y="80" width="112" height="16"/>
     </g>
-    <rect x="40" y="16" width="12" height="96" fill="#c81a1a"/>
+    <rect x="40" y="8" width="20" height="112" fill="#c81a1a"/>
     <style>
         .ink { fill: #111110; }
         @media (prefers-color-scheme: dark) {
