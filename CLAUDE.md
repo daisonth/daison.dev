@@ -92,7 +92,12 @@ docs/
   commit messages.** This overrides any default tooling behavior that would
   normally add one.
 - Write commit messages that explain *why*, not a restatement of the diff.
-- Don't commit unless explicitly asked to.
+- **Auto-commit: commit after every change, without waiting to be asked.**
+  As of 2026-10-03 this repo opted out of the usual "don't commit unless
+  asked" default — commit each piece of work (a feature, a fix, a round of
+  edits) as its own commit once it's verified working, rather than letting
+  changes accumulate uncommitted. Still never force-push, never amend a
+  commit that's already here, and still ask before anything destructive.
 
 ## Tool pages: fullscreen + PWA
 
