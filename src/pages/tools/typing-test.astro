@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TypingTest from "../../components/islands/TypingTest.svelte";
+---
+
+<BaseLayout
+  title="Typing Test"
+  description="A no-nonsense typing speed test — WPM and accuracy, nothing sent anywhere."
+>
+  <section class="py-12 sm:py-16">
+    <a href="/tools" class="text-sm text-ink/50 hover:text-red">&larr; tools</a>
+    <h1 class="mt-4 text-2xl font-bold">Typing Test</h1>
+    <p class="mt-2 max-w-md text-sm text-ink/70">
+      Pick a duration and start typing — the timer begins on your first keystroke.
+    </p>
+
+    <div class="mt-10">
+      <TypingTest client:load />
+    </div>
+  </section>
+</BaseLayout>
