@@ -36,9 +36,23 @@
 
   let { label, placeholder, format, minify, validate, buildTree }: Props = $props();
 
+  const FULLSCREEN_PARAM = "fullscreen";
+
+  // Reading the URL here — not in onMount — matters: this initializer runs
+  // during the client-side hydration pass itself, so a bookmarked
+  // ?fullscreen link renders straight into fullscreen on first paint
+  // instead of flashing the compact view and then switching. (It also
+  // runs during Astro's server render, where `window` doesn't exist —
+  // guarded for that; the server-rendered HTML always starts compact,
+  // which is fine since hydration replaces it immediately.)
+  function readFullscreenFromUrl(): boolean {
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).has(FULLSCREEN_PARAM);
+  }
+
   let text = $state("");
   let copied = $state(false);
-  let isFullscreen = $state(false);
+  let isFullscreen = $state(readFullscreenFromUrl());
   let viewMode: "text" | "tree" = $state("text");
   // SvelteSet, not a plain Set: $state only deep-reactively proxies plain
   // objects/arrays — mutating methods on a built-in Set/Map (.add/.delete)
@@ -149,6 +163,18 @@
     }
     window.addEventListener("keydown", onKeydown);
     return () => window.removeEventListener("keydown", onKeydown);
+  });
+
+  // Keeps the URL in sync with fullscreen state in both directions: not
+  // just "a ?fullscreen link opens fullscreen" but also "entering
+  // fullscreen from the button makes the current URL bookmarkable as one."
+  // replaceState, not pushState — toggling fullscreen shouldn't pile up
+  // browser-history entries.
+  $effect(() => {
+    const url = new URL(window.location.href);
+    if (isFullscreen) url.searchParams.set(FULLSCREEN_PARAM, "1");
+    else url.searchParams.delete(FULLSCREEN_PARAM);
+    history.replaceState(history.state, "", url);
   });
 
   // The overlay already fills the viewport — this just stops the page
