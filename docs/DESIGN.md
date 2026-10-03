@@ -24,6 +24,55 @@ are generated directly from these tokens: `bg-paper`, `text-ink`, `border-red`,
 hover state, a status tag. If more than one element is red at a time, that's
 a sign something should be ink instead.
 
+### Dark mode
+
+Light ink on dark paper — the same three roles, not a fourth palette.
+
+| Name  | Hex       | vs. light mode                                   |
+| ----- | --------- | ------------------------------------------------- |
+| Paper | `#121212` | Near-black, not stark `#000` (same reasoning as light paper avoiding stark `#fff`). |
+| Ink   | `#e8e6e2` | Warm off-white, not pure `#fff` — easier to read for long stretches, less halation. |
+| Red   | `#ff5c5c` | Brightened from `#c81a1a` — the light-mode red is only ~3.3:1 on a dark background, below AA; this is ~5.8:1. |
+
+Three states, in priority order: an explicit choice (`data-theme="light"` or
+`"dark"` on `<html>`, set by `ThemeToggle.astro`, persisted in
+`localStorage`) beats system preference (`prefers-color-scheme: dark`)
+beats the light-mode defaults on bare `:root`. Applied before first paint
+by an inline script in `BaseLayout.astro`'s `<head>` — the same
+anti-flash technique as the old focus-mode script, for the same reason:
+without it, a dark-mode visitor sees a flash of the light theme on every
+load.
+
+**Why this re-themes the whole site from three token overrides, with zero
+per-component dark-mode CSS**: every color everywhere else in this
+codebase is already expressed as `var(--color-ink)` / `var(--color-red)`
+(or a `color-mix()` of them) rather than a literal hex — Tailwind's
+generated utilities (`.text-ink`, `.bg-paper`, …) reference the custom
+property by name, not an inlined value. Redefine the three tokens and
+every utility that uses them picks up the new value automatically. If you
+ever catch yourself reaching for a literal hex in a component instead of
+one of these tokens or `currentColor` (icons already inherit via
+`currentColor`, which is why they don't need a line of dark-mode code
+either), that component will silently break in dark mode — there's no
+test that catches this, only the rule.
+
+The override block in `global.css` is **deliberately unlayered** (not
+inside any `@layer`), same mechanism as the fullscreen overlay bug
+described below under "Fullscreen" — Tailwind's `@theme` compiles into
+`@layer theme`, and an unlayered rule always outranks every layer
+regardless of specificity or source order. This is that trick used on
+purpose instead of fought by accident.
+
+**The one thing that isn't a simple color swap**: the paper grain. The
+same noise texture reads dramatically grainier on a dark background than
+a light one — it's a perceptual effect (noise shows up far more in
+shadows than highlights), not a color one, so it needed its own
+separately-dampened dark variant (`--grain` token, lower opacity baked
+into the SVG) rather than inheriting the light version unchanged. Found
+by actually looking at it in a browser, not by reasoning about CSS in the
+abstract — the first version shipped was badly broken (looked like TV
+static) despite being "correct" by the color-token logic above.
+
 ## Shape
 
 No rounded corners, anywhere. Enforced globally in

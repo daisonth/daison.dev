@@ -17,6 +17,56 @@
   --rule-gap: 2rem;
 }
 
+/*
+ * The paper grain as a token, not inlined into .paper directly — dark mode
+ * needs its own dampened variant below (see why in that comment), so this
+ * has to be swappable the same way the colors are.
+ */
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/*
+ * Dark mode: light ink on dark paper. Three states — system preference by
+ * default, an explicit toggle (ThemeToggle.astro) that overrides it either
+ * way, persisted in localStorage and applied pre-paint by an inline script
+ * in BaseLayout.astro so there's no flash of the wrong theme on load.
+ *
+ * Deliberately unlayered (not inside @layer, unlike almost everything else
+ * in this file) — Tailwind's own `@theme` block above compiles into
+ * `@layer theme`, and per the CSS cascade layers spec, layer order beats
+ * selector specificity entirely; an unlayered rule always outranks every
+ * layer regardless of order. The fullscreen overlay bug (see "Fullscreen"
+ * in docs/DESIGN.md) was this exact mechanism working against us by
+ * accident; here it's deliberate, and it's the only way these overrides
+ * reliably win.
+ *
+ * Almost every other color in this file (ruled lines, margin line, prose,
+ * selection, disabled states) is already expressed as `var(--color-ink)` /
+ * `var(--color-red)` or a color-mix of them, not a literal hex, so
+ * redefining these tokens re-themes most of the site for free. The grain
+ * is the one exception worth calling out: the *same* noise pattern reads
+ * dramatically grainier on a dark background than a light one — it's not
+ * a simple color swap, it's a perceptual one (the classic "noise shows up
+ * far more in shadows than highlights" effect) — so it needed its own,
+ * separately-dampened dark variant rather than inheriting unchanged.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-paper: #121212;
+    --color-ink: #e8e6e2;
+    --color-red: #ff5c5c;
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-paper: #121212;
+  --color-ink: #e8e6e2;
+  --color-red: #ff5c5c;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+}
+
 @layer base {
   /* No rounded corners anywhere, ever. This is the one rule we never break. */
   *,
@@ -76,7 +126,7 @@
   .paper {
     background-image:
       /* fine paper grain */
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      var(--grain),
       /* ruled lines */
       repeating-linear-gradient(
         to bottom,

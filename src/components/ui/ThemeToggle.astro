@@ -1,0 +1,90 @@
+---
+/**
+ * Two tabs, same visual pattern as every other mode-switch in this site
+ * (Currency Converter's pair/all-currencies tabs, Shopping List's list
+ * tabs) — active one gets a red underline. Plain vanilla JS: this is DOM
+ * attribute + localStorage toggling, not component state, so it doesn't
+ * need a Svelte island. The actual re-theming happens in CSS — see the
+ * dark-mode block in global.css — this component only ever sets
+ * `data-theme` on <html> and lets the cascade do the rest.
+ */
+const THEMES = [
+  { id: "light", label: "light" },
+  { id: "dark", label: "dark" },
+] as const;
+---
+
+<div role="group" aria-label="color theme" class="flex border border-ink/30">
+  {
+    THEMES.map((theme) => (
+      <button
+        type="button"
+        data-theme-choice={theme.id}
+        aria-pressed="false"
+        class="border-b-2 border-transparent px-2 py-1 text-xs text-ink/60 transition-colors hover:text-ink"
+      >
+        {theme.label}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  const STORAGE_KEY = "daison:theme";
+  const buttons = document.querySelectorAll<HTMLButtonElement>("[data-theme-choice]");
+  const themeColorMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+  function getStoredTheme(): "light" | "dark" | null {
+    try {
+      const value = localStorage.getItem(STORAGE_KEY);
+      return value === "light" || value === "dark" ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getEffectiveTheme(): "light" | "dark" {
+    return getStoredTheme() ?? (darkMediaQuery.matches ? "dark" : "light");
+  }
+
+  function syncButtons() {
+    const effective = getEffectiveTheme();
+    buttons.forEach((button) => {
+      const active = button.dataset.themeChoice === effective;
+      button.classList.toggle("border-red", active);
+      button.classList.toggle("text-red", active);
+      button.classList.toggle("text-ink/60", !active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    if (themeColorMeta) {
+      themeColorMeta.content = effective === "dark" ? "#121212" : "#fafaf8";
+    }
+  }
+
+  function setTheme(theme: "light" | "dark") {
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      // Storage unavailable — the toggle still works for this page view,
+      // it just won't be remembered next visit.
+    }
+    document.documentElement.dataset.theme = theme;
+    syncButtons();
+  }
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const choice = button.dataset.themeChoice;
+      if (choice === "light" || choice === "dark") setTheme(choice);
+    });
+  });
+
+  // Keeps the toggle's active state honest if the OS theme changes while
+  // the page is open and the user hasn't made an explicit choice here.
+  darkMediaQuery.addEventListener("change", () => {
+    if (!getStoredTheme()) syncButtons();
+  });
+
+  syncButtons();
+</script>
