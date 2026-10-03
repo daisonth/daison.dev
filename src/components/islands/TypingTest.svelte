@@ -7,10 +7,18 @@
    * user's eyes stay on the text instead of bouncing to a separate box —
    * same pattern real typing-test sites use.
    *
+   * The passage viewport is a fixed height with the cursor auto-scrolled
+   * into view, rather than growing to show the whole generated word bank —
+   * both because a wall of 200+ words is unpleasant to look at, and
+   * because it's what was pushing the results panel below the fold after
+   * finishing. Results render *above* the passage once a test finishes,
+   * for the same "don't make someone scroll to see their own score" reason.
+   *
    * The timer only starts on the first keystroke, not on page load/mount.
    */
   import { onMount } from "svelte";
   import { TYPING_WORDS } from "../../lib/typingWords";
+  import { createFullscreen } from "../../lib/fullscreen.svelte";
 
   interface HistoryEntry {
     id: string;
@@ -35,6 +43,8 @@
     return words.join(" ");
   }
 
+  const fullscreen = createFullscreen();
+
   let duration: number = $state(30);
   let targetText = $state(generateWords(220));
   let typed = $state("");
@@ -43,6 +53,7 @@
   let history: HistoryEntry[] = $state([]);
 
   let inputEl: HTMLInputElement | undefined = $state();
+  let passageEl: HTMLDivElement | undefined = $state();
   let timerHandle: ReturnType<typeof setInterval> | null = null;
 
   const correctChars = $derived(
@@ -134,6 +145,14 @@
     inputEl?.focus();
   }
 
+  // Keeps the current cursor position scrolled into view within the
+  // fixed-height passage viewport as you type, instead of showing the
+  // entire (potentially very long) generated text at once.
+  $effect(() => {
+    void typed.length;
+    passageEl?.querySelector('[data-cursor="true"]')?.scrollIntoView({ block: "center" });
+  });
+
   onMount(() => {
     try {
       const stored = localStorage.getItem(HISTORY_KEY);
@@ -150,80 +169,79 @@
   });
 </script>
 
-<div class="mx-auto max-w-2xl">
-  <div class="flex flex-wrap items-center justify-between gap-2">
-    <div class="flex gap-1 border-b border-ink/30">
-      {#each DURATIONS as d (d)}
-        <button
-          type="button"
-          onclick={() => selectDuration(d)}
-          class={`border-b-2 px-3 py-2 text-sm transition-colors ${
-            duration === d ? "border-red text-red" : "border-transparent text-ink/60 hover:text-ink"
-          }`}
-        >
-          {d}s
-        </button>
-      {/each}
-    </div>
-
-    <div class="flex items-center gap-4 text-sm">
-      {#if status === "running"}
-        <p class="font-mono text-ink/60">{remaining}s</p>
-      {/if}
-      <button type="button" onclick={restart} class="text-ink/50 hover:text-red">restart</button>
-    </div>
-  </div>
-
-  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-  <div
-    onclick={focusInput}
-    class="relative mt-6 border border-ink/30 p-4 font-mono text-lg leading-relaxed whitespace-pre-wrap"
-  >
-    {#each [...targetText] as char, i (i)}
-      <span class={charClass(i)}>{char}</span>
-    {/each}
-    <input
-      bind:this={inputEl}
-      bind:value={typed}
-      oninput={handleInput}
-      onpaste={(e) => e.preventDefault()}
-      type="text"
-      autocomplete="off"
-      autocapitalize="off"
-      autocorrect="off"
-      spellcheck="false"
-      disabled={status === "finished"}
-      aria-label="typing test input — type the text above"
-      class="absolute inset-0 h-0 w-0 opacity-0"
-    />
-  </div>
-
-  {#if status === "finished"}
-    <div class="mt-6 border border-ink/30 p-4">
-      <div class="flex gap-8">
-        <div>
-          <p class="text-xs tracking-wide text-ink/50 uppercase">wpm</p>
-          <p class="font-mono text-3xl font-bold">{wpm}</p>
-        </div>
-        <div>
-          <p class="text-xs tracking-wide text-ink/50 uppercase">accuracy</p>
-          <p class="font-mono text-3xl font-bold">{accuracy}%</p>
-        </div>
-      </div>
+{#snippet controls()}
+  <div class="flex gap-1 border-b border-ink/30">
+    {#each DURATIONS as d (d)}
       <button
         type="button"
-        onclick={restart}
-        class="mt-4 border border-ink px-4 py-2 text-sm transition-colors hover:border-red hover:text-red"
+        onclick={() => selectDuration(d)}
+        class={`border-b-2 px-3 py-2 text-sm transition-colors ${
+          duration === d ? "border-red text-red" : "border-transparent text-ink/60 hover:text-ink"
+        }`}
       >
-        try again
+        {d}s
       </button>
-    </div>
-  {:else}
-    <p class="mt-3 text-xs text-ink/50">
-      {status === "idle" ? "Start typing to begin." : `${wpm} wpm · ${accuracy}% accuracy so far`}
-    </p>
-  {/if}
+    {/each}
+  </div>
 
+  <div class="flex items-center gap-4 text-sm">
+    {#if status === "running"}
+      <p class="font-mono text-ink/60">{remaining}s</p>
+    {/if}
+    <button type="button" onclick={restart} class="text-ink/50 hover:text-red">restart</button>
+    <button
+      type="button"
+      onclick={() => fullscreen.toggle()}
+      class="text-ink/50 hover:text-red"
+    >
+      {fullscreen.isFullscreen ? "exit fullscreen" : "fullscreen"}
+    </button>
+  </div>
+{/snippet}
+
+{#snippet results()}
+  <div class="border border-ink/30 p-4">
+    <div class="flex gap-8">
+      <div>
+        <p class="text-xs tracking-wide text-ink/50 uppercase">wpm</p>
+        <p class="font-mono text-3xl font-bold">{wpm}</p>
+      </div>
+      <div>
+        <p class="text-xs tracking-wide text-ink/50 uppercase">accuracy</p>
+        <p class="font-mono text-3xl font-bold">{accuracy}%</p>
+      </div>
+    </div>
+    <button
+      type="button"
+      onclick={restart}
+      class="mt-4 border border-ink px-4 py-2 text-sm transition-colors hover:border-red hover:text-red"
+    >
+      try again
+    </button>
+  </div>
+{/snippet}
+
+{#snippet passageContent()}
+  {#each [...targetText] as char, i (i)}
+    <span data-cursor={i === typed.length ? "true" : undefined} class={charClass(i)}>{char}</span>
+  {/each}
+  <input
+    bind:this={inputEl}
+    bind:value={typed}
+    oninput={handleInput}
+    onpaste={(e) => e.preventDefault()}
+    type="text"
+    autocomplete="off"
+    autocapitalize="off"
+    autocorrect="off"
+    spellcheck="false"
+    disabled={status === "finished"}
+    aria-label="typing test input — type the text above"
+    class="absolute inset-0 h-0 w-0 opacity-0"
+  />
+{/snippet}
+
+{#snippet historyList()}
   {#if history.length > 0}
     <div class="mt-6">
       <div class="flex items-center justify-between">
@@ -244,4 +262,66 @@
       </ul>
     </div>
   {/if}
-</div>
+{/snippet}
+
+{#if fullscreen.isFullscreen}
+  <div use:fullscreen.portal class="paper fixed inset-0 z-50 flex flex-col gap-2 bg-paper p-3">
+    <div class="flex items-center justify-between border-b border-ink/15 pb-2">
+      <h2 class="font-mono text-sm font-bold tracking-wide text-ink/70 uppercase">typing test</h2>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      {@render controls()}
+    </div>
+
+    {#if status === "finished"}
+      {@render results()}
+    {/if}
+
+    <div
+      bind:this={passageEl}
+      onclick={focusInput}
+      class="relative flex-1 overflow-hidden border border-ink/30 p-4 font-mono text-lg leading-relaxed whitespace-pre-wrap"
+    >
+      {@render passageContent()}
+    </div>
+
+    {#if status !== "finished"}
+      <p class="text-xs text-ink/50">
+        {status === "idle" ? "Start typing to begin." : `${wpm} wpm · ${accuracy}% accuracy so far`}
+      </p>
+    {/if}
+
+    <div class="overflow-y-auto">
+      {@render historyList()}
+    </div>
+  </div>
+{:else}
+  <div class="mx-auto max-w-2xl">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      {@render controls()}
+    </div>
+
+    {#if status === "finished"}
+      <div class="mt-6">
+        {@render results()}
+      </div>
+    {/if}
+
+    <div
+      bind:this={passageEl}
+      onclick={focusInput}
+      class="relative mt-6 h-32 overflow-hidden border border-ink/30 p-4 font-mono text-lg leading-relaxed whitespace-pre-wrap"
+    >
+      {@render passageContent()}
+    </div>
+
+    {#if status !== "finished"}
+      <p class="mt-3 text-xs text-ink/50">
+        {status === "idle" ? "Start typing to begin." : `${wpm} wpm · ${accuracy}% accuracy so far`}
+      </p>
+    {/if}
+
+    {@render historyList()}
+  </div>
+{/if}

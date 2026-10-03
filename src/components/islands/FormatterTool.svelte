@@ -24,6 +24,7 @@
   import type { FoldableNode } from "../../lib/formatters/foldTree";
   import { collectFoldableIds, flattenTree } from "../../lib/formatters/foldTree";
   import { SvelteSet } from "svelte/reactivity";
+  import { createFullscreen } from "../../lib/fullscreen.svelte";
 
   interface Props {
     label: string;
@@ -36,23 +37,10 @@
 
   let { label, placeholder, format, minify, validate, buildTree }: Props = $props();
 
-  const FULLSCREEN_PARAM = "fullscreen";
-
-  // Reading the URL here — not in onMount — matters: this initializer runs
-  // during the client-side hydration pass itself, so a bookmarked
-  // ?fullscreen link renders straight into fullscreen on first paint
-  // instead of flashing the compact view and then switching. (It also
-  // runs during Astro's server render, where `window` doesn't exist —
-  // guarded for that; the server-rendered HTML always starts compact,
-  // which is fine since hydration replaces it immediately.)
-  function readFullscreenFromUrl(): boolean {
-    if (typeof window === "undefined") return false;
-    return new URLSearchParams(window.location.search).has(FULLSCREEN_PARAM);
-  }
+  const fullscreen = createFullscreen();
 
   let text = $state("");
   let copied = $state(false);
-  let isFullscreen = $state(readFullscreenFromUrl());
   let viewMode: "text" | "tree" = $state("text");
   // SvelteSet, not a plain Set: $state only deep-reactively proxies plain
   // objects/arrays — mutating methods on a built-in Set/Map (.add/.delete)
@@ -134,59 +122,6 @@
   function syncGutterScroll() {
     if (gutterEl && textareaEl) gutterEl.scrollTop = textareaEl.scrollTop;
   }
-
-  /**
-   * Moves the fullscreen overlay to be a direct child of <body>. Required,
-   * not cosmetic: BaseLayout's <main> has `relative z-10`, which makes it
-   * its own stacking context — a z-index on an element nested inside main
-   * is compared only within that context, so it can NEVER outrank a
-   * sibling stacking context like <footer> (also `relative z-10`) no
-   * matter how high the number is. Rendering at the body level instead
-   * puts the overlay in the same flat stacking comparison as header/main/
-   * footer, where z-index actually works as expected.
-   */
-  function portal(node: HTMLElement) {
-    document.body.appendChild(node);
-    return {
-      destroy() {
-        node.remove();
-      },
-    };
-  }
-
-  // Esc exits fullscreen, same as the toggle button; only listens while
-  // actually in fullscreen.
-  $effect(() => {
-    if (!isFullscreen) return;
-    function onKeydown(event: KeyboardEvent) {
-      if (event.key === "Escape") isFullscreen = false;
-    }
-    window.addEventListener("keydown", onKeydown);
-    return () => window.removeEventListener("keydown", onKeydown);
-  });
-
-  // Keeps the URL in sync with fullscreen state in both directions: not
-  // just "a ?fullscreen link opens fullscreen" but also "entering
-  // fullscreen from the button makes the current URL bookmarkable as one."
-  // replaceState, not pushState — toggling fullscreen shouldn't pile up
-  // browser-history entries.
-  $effect(() => {
-    const url = new URL(window.location.href);
-    if (isFullscreen) url.searchParams.set(FULLSCREEN_PARAM, "1");
-    else url.searchParams.delete(FULLSCREEN_PARAM);
-    history.replaceState(history.state, "", url);
-  });
-
-  // The overlay already fills the viewport — this just stops the page
-  // behind it from also scrolling while it's open.
-  $effect(() => {
-    if (!isFullscreen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  });
 </script>
 
 {#snippet emptyState()}
@@ -297,16 +232,16 @@
     {/if}
     <button
       type="button"
-      onclick={() => (isFullscreen = !isFullscreen)}
+      onclick={() => fullscreen.toggle()}
       class="ml-auto border border-ink/30 px-4 py-2 text-ink/50 transition-colors hover:border-red hover:text-red"
     >
-      {isFullscreen ? "exit fullscreen" : "fullscreen"}
+      {fullscreen.isFullscreen ? "exit fullscreen" : "fullscreen"}
     </button>
   </div>
 {/snippet}
 
-{#if isFullscreen}
-  <div use:portal class="paper fixed inset-0 z-50 flex flex-col gap-2 bg-paper p-3">
+{#if fullscreen.isFullscreen}
+  <div use:fullscreen.portal class="paper fixed inset-0 z-50 flex flex-col gap-2 bg-paper p-3">
     <div class="flex items-center justify-between border-b border-ink/15 pb-2">
       <h2 class="font-mono text-sm font-bold tracking-wide text-ink/70 uppercase">
         {label} formatter
