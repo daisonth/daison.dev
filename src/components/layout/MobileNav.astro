@@ -1,0 +1,41 @@
+---
+/**
+ * App-style bottom tab bar, mobile only. Below `sm`, Nav.astro hides its
+ * link list (keeping just the wordmark + theme toggle up top) and this bar
+ * takes over navigation instead — icons are easier to hit one-handed at
+ * the bottom of the screen than a text row stretching across the top.
+ * Desktop never sees this; `sm:hidden` below.
+ */
+const path = Astro.url.pathname;
+const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+
+const tabClass =
+  "flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-ink/60 transition-colors hover:text-red aria-[current=page]:text-red [&_svg]:h-5 [&_svg]:w-5";
+---
+
+<nav
+  aria-label="Primary"
+  class="paper bg-paper fixed inset-x-0 bottom-0 z-20 flex border-t border-ink/15 sm:hidden"
+>
+  <a href="/" aria-current={isActive("/") ? "page" : undefined} class={tabClass}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 11l8-7 8 7"></path>
+      <path d="M6 10v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8"></path>
+      <path d="M10 19v-5h4v5"></path>
+    </svg>
+    <span class="text-[10px]">home</span>
+  </a>
+  <a href="/tools" aria-current={isActive("/tools") ? "page" : undefined} class={tabClass}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 7a4 4 0 0 1-5.3 4.7L6 17.4 4.6 16l5.7-5.7A4 4 0 1 1 17 7z"></path>
+    </svg>
+    <span class="text-[10px]">tools</span>
+  </a>
+  <a href="/contact" aria-current={isActive("/contact") ? "page" : undefined} class={tabClass}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="5" width="18" height="14"></rect>
+      <path d="M3 7l9 6 9-6"></path>
+    </svg>
+    <span class="text-[10px]">contact</span>
+  </a>
+</nav>
